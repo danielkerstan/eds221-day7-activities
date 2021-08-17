@@ -1,0 +1,39 @@
+---
+title: "string_practice"
+author: "Daniel Kerstan"
+date: "8/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+```
+
+```{r}
+alarm_report <- tibble::tribble(
+         ~date,           ~building,                                              ~alarm_message,
+  "2020-03-14", "Engineering-North", "10:02am – HVAC system down, facilities management alerted",
+  "2020-03-15",         "Bren Hall",                    "8:24am – Elevator North out of service",
+  "2020-04-10", "Engineering-South",     "12:41am – Fire alarm, UCSB fire responded and cleared",
+  "2020-04-18",        "Engr-North",     "9:58pm – Campus point emergency siren, UCPD responded"
+  )
+
+```
+
+```{r}
+alarm_report$building <- str_replace(alarm_report$building, pattern = "Engr", "Engineering")
+```
+
+```{r}
+alarm_report <- alarm_report %>% 
+  separate(building, c("building", "wing"), sep = "-")
+  
+alarm_report <- filter(alarm_report, str_detect(alarm_message, pattern = "responded"))
+
+alarm_report <- separate(alarm_report, alarm_message, c("message_time", "message"), sep = "–")
+
+alarm_report <- mutate(alarm_report, date = ymd(date))
+```
+

@@ -1,0 +1,80 @@
+---
+title: "bird_joins"
+author: "Daniel Kerstan"
+date: "8/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(lubridate)
+
+```
+
+```{r}
+bird_observations <- read_csv(here("data", "52_pp52_birds_1.csv"))
+
+sites <- read_csv(here("data", "52_pp52_sites_1.csv"))
+
+surveys <- read_csv(here("data", "52_pp52_surveys_1.csv"))
+
+taxalist <- read_csv(here("data", "52_pp52_taxalist_1.csv"))
+```
+
+```{r}
+birds_subset <- bird_observations %>% 
+  filter(species_id %in% c("BHCO", "RWBL"),
+         site_id %in% c("LI-W", "NU-C")
+  )
+```
+
+```{r}
+birds_left_1 <- left_join(birds_subset, sites) #joining by "site_id
+
+birds_left <- left_join(birds_left_1, taxalist) #joining by "species_id
+
+```
+```{r}
+birds_full <- full_join(birds_subset, sites, by = "site_id")
+```
+
+```{r}
+birds_inner <- inner_join(birds_subset, taxalist)#joining by "species_id"
+
+birds_inner_vs_left <- left_join(birds_subset, taxalist)
+```
+
+# Task 2
+
+```{r}
+bird_observations <- bird_observations %>% 
+  rename(bird_obs_notes = notes)
+
+birds_all_1 <- full_join(bird_observations, taxalist)
+birds_all_2 <- full_join(birds_all_1, sites)
+birds_all <- full_join(birds_all_2, surveys)
+
+birds_all <- birds_all %>% 
+  select("survey_date", "common_name", "park_name", "bird_count")
+```
+
+```{r}
+birds_all <- birds_all %>% 
+  mutate(survey_month = month(survey_date)) %>% 
+  mutate(survey_month = factor(survey_month)) %>% 
+  relocate(survey_month, .after = survey_date)
+
+birds_summary <- birds_all %>% 
+  group_by(park_name, survey_month) %>% 
+  summarize(n = n())
+birds_summary_filtered <- birds_summary %>% 
+  filter(park_name %in% c("Lindo", "Orme", "Palomino", "Sonrisa"))
+
+
+
+```
+
+
+
